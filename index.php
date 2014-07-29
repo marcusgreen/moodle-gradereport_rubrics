@@ -53,7 +53,7 @@ $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 //$mform->set_data();
 
 // Set up some default info.
-$assignmentid = 0;
+$assignmentid = $userid = 0;
 
 if ($mform->is_cancelled()) {
 }
@@ -73,9 +73,9 @@ echo("Selected assignment id is ".$assignmentid);
 
 grade_regrade_final_grades($courseid);//first make sure we have proper final grades
 
-$gpr = new grade_plugin_return(array('test'=>'test', 'type'=>'report', 'plugin'=>'grader', 'courseid'=>$courseid, 'assignmentid'=>$assignmentid));// return tracking object
+$gpr = new grade_plugin_return(array('type'=>'report', 'plugin'=>'grader', 'courseid'=>$courseid, 'userid'=>$userid));// return tracking object
 $report = new grade_report_rubrics($courseid, $gpr, $context);// Initialise the grader report object
 
-$report->show();
+$report->show($assignmentid);
 
 echo $OUTPUT->footer();
