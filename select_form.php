@@ -17,7 +17,7 @@
 /**
  *
  * @package    report_rubrics
- * @copyright  2014 Learning Technology Services
+ * @copyright  2014 Learning Technology Services, www.lts.ie - Lead Developer: Karen Holland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

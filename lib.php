@@ -16,13 +16,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This is a one-line short description of the file
- *
- * You can have a rather longer description of the file as well,
- * if you like, and it can span multiple lines.
  *
  * @package    grade_report_rubrics
- * @author     Daniel Neis Araujo <danielneis@gmail.com>
+ * @copyright  2014 Learning Technology Services, www.lts.ie - Lead Developer: Karen Holland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
