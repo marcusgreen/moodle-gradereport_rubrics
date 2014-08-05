@@ -34,6 +34,11 @@ if (!$course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('invalidcourseid');
 }
 
+// CSV format
+$format = optional_param('format','',PARAM_ALPHA);
+$excel = $format == 'excelcsv';
+$csv = $format == 'csv' || $excel;
+
 $PAGE->set_url(new moodle_url('/grade/report/rubrics/index.php', array('id'=>$courseid)));
 
 require_login($courseid);
@@ -59,19 +64,40 @@ else if ($formdata = $mform->get_data()) {
     $assignmentid = $formdata->assignmentid;
 }
 
+if (!$csv) {
 print_grade_page_head($COURSE->id, 'report', 'rubrics',
                       get_string('pluginname', 'gradereport_rubrics') .
                       $OUTPUT->help_icon('pluginname', 'gradereport_rubrics'));
 
 // Display the form.
 $mform->display();
+
 echo("Selected assignment id is ".$assignmentid);
 
 grade_regrade_final_grades($courseid);//first make sure we have proper final grades
+} else {
+    $shortname = format_string($course->shortname, true, array('context' => $context));
+    header('Content-Disposition: attachment; filename=progress.'.
+        preg_replace('/[^a-z0-9-]/','_',core_text::strtolower(strip_tags($shortname))).'.csv');
+    // Unicode byte-order mark for Excel
+    if ($excel) {
+        header('Content-Type: text/csv; charset=UTF-16LE');
+        print chr(0xFF).chr(0xFE);
+    } else {
+        header('Content-Type: text/csv; charset=UTF-8');
+    }
+}
+
 
 $gpr = new grade_plugin_return(array('type'=>'report', 'plugin'=>'grader', 'courseid'=>$courseid, 'userid'=>$userid));// return tracking object
 $report = new grade_report_rubrics($courseid, $gpr, $context);// Initialise the grader report object
+$report->assignmentid = $assignmentid;
+$report->format = $format;
+$report->excel = $format == 'excelcsv';
+$report->csv = $format == 'csv' || $report->excel;
 
-$report->show($assignmentid);
+$report->show();
 
+if (!$csv) {
 echo $OUTPUT->footer();
+}

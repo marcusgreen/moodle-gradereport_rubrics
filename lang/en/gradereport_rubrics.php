@@ -27,3 +27,6 @@ $string['desc_scale'] = 'This is only an example config.';
 $string['pluginname'] = 'Rubrics report';
 $string['pluginname_help'] = 'New Rubrics report help';
 $string['assignmentidtype'] = 'Select a specific assignment or all to view results';
+$string['err_norecords'] = 'No records found';
+$string['excelcsvdownload'] = 'Download in Excel-compatible format (.csv)';
+$string['csvdownload'] = 'Download in spreadsheet format (UTF-8 .csv)';

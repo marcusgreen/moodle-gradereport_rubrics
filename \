@@ -41,7 +41,6 @@ class grade_report_rubrics extends grade_report {
     public function show() {
         global $DB, $CFG;
 
-        $output = "";
 	$assignmentid = $this->assignmentid;
 
 	$assignmentsql = ($assignmentid == 0)?"asg.id AS assignmentid, asg.name AS assignment, ":"";
@@ -79,12 +78,10 @@ class grade_report_rubrics extends grade_report {
 
             $link_url = "index.php?id={$this->course->id}&amp;assignmentid={$this->assignmentid}&amp;format=";
 
-            if ((!$this->csv)) {
-                $output = '<ul class="rubrics-actions"><li><a href="'.$link_url.'csv">'.
-                    get_string('csvdownload','gradereport_rubrics').'</a></li>
-                    <li><a href="'.$link_url.'excelcsv">'.
-                    get_string('excelcsvdownload','gradereport_rubrics').'</a></li></ul>';
-            }
+            $output = '<ul class="rubrics-actions"><li><a href="'.$link_url.'csv">'.
+                get_string('csvdownload','gradereport_rubrics').'</a></li>
+                <li><a href="'.$link_url.'excelcsv">'.
+                get_string('excelcsvdownload','gradereport_rubrics').'</a></li></ul>';
 
             // put data into table
             $output .= $this->display_table($data);
@@ -95,8 +92,10 @@ class grade_report_rubrics extends grade_report {
     public function display_table($data) {
         global $DB, $CFG;
 
-	$csv_output = "";
-        if (!$this->csv) {
+        $excel = $this->format == 'excelcsv';
+        $csv = $this->format == 'csv' || $excel;
+
+        if (!$csv) {
         $output = html_writer::start_tag('div', array('class' => 'rubrics'));
         $table = new html_table();
         //$table->head = array();
@@ -106,7 +105,7 @@ class grade_report_rubrics extends grade_report {
         $table->data = array();
         $table->data[] = new html_table_row();
         } else {
-	    if ($this->excel) {
+	    if ($excel) {
                 print chr(0xFF).chr(0xFE);
                 $sep="\t".chr(0);
                 $line="\n".chr(0);
@@ -122,27 +121,19 @@ class grade_report_rubrics extends grade_report {
                 $cell = new html_table_cell();
 		$cell->text = $value;
 		$row->cells[] = $cell;
-                if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($value), $this->excel).$sep;
+                if ($csv) $csv_output .= $sep.$value.$sep;
 	    }
 	    $table->data[] = $row;
-            if ($this->csv) $csv_output .= $line;
+            if ($csv) $csv_output .= $line;
         }
 
-        if ($this->csv) {
+        if ($csv) {
             $output = $csv_output;
         } else {
 	    $output .= html_writer::table($table);
         }
 
 	return $output;
-    }
-
-    function csv_quote($value, $excel) {
-        if ($excel) {
-            return core_text::convert('"'.str_replace('"',"'",$value).'"','UTF-8','UTF-16LE');
-        } else {
-            return '"'.str_replace('"',"'",$value).'"';
-        }
     }
 
     private function get_moodle_grades() {
