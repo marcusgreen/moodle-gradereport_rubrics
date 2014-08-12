@@ -72,8 +72,6 @@ print_grade_page_head($COURSE->id, 'report', 'rubrics',
 // Display the form.
 $mform->display();
 
-echo("Selected assignment id is ".$assignmentid);
-
 grade_regrade_final_grades($courseid);//first make sure we have proper final grades
 } else {
     $shortname = format_string($course->shortname, true, array('context' => $context));
