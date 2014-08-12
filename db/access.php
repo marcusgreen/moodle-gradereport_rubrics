@@ -36,20 +36,4 @@ $capabilities = array(
         )
     ),
 
-    'gradereport/rubrics:access' => array(
-        'riskbitmask' => '',
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'legacy' => array(
-            'teacher' => CAP_PREVENT,
-            'editingteacher' => CAP_PREVENT,
-            'manager' => CAP_PREVENT
-        ),
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    ),
-
 );
