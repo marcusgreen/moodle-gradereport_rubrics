@@ -55,6 +55,9 @@ $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 
 // Set up some default info.
 $assignmentid = $userid = 0;
+$assignmentid = optional_param('assignmentid','0',PARAM_INT);
+$displaylevel = optional_param('displaylevel','1',PARAM_INT);
+$displayremark = optional_param('displayremark','1',PARAM_INT);
 
 if ($mform->is_cancelled()) {
 }
@@ -74,8 +77,9 @@ $mform->display();
 
 grade_regrade_final_grades($courseid);//first make sure we have proper final grades
 } else {
-    $shortname = format_string($course->shortname, true, array('context' => $context));
-    header('Content-Disposition: attachment; filename=progress.'.
+    $assignment = $DB->get_record_sql('SELECT asg.name FROM {assign} AS asg WHERE asg.id = ? limit 1', array($assignmentid));
+    $shortname = format_string($assignment->name, true, array('context' => $context));
+    header('Content-Disposition: attachment; filename=rubrics_report.'.
         preg_replace('/[^a-z0-9-]/','_',core_text::strtolower(strip_tags($shortname))).'.csv');
     // Unicode byte-order mark for Excel
     if ($excel) {
@@ -93,9 +97,14 @@ $report->assignmentid = $assignmentid;
 $report->format = $format;
 $report->excel = $format == 'excelcsv';
 $report->csv = $format == 'csv' || $report->excel;
+$report->displaylevel = ($displaylevel == 1);
+$report->displayremark = ($displayremark == 1);
 
 $report->show();
 
-if (!$csv) {
-echo $OUTPUT->footer();
+if ($report->csv) {
+    echo($report->output);
+    exit;
 }
+
+echo $OUTPUT->footer();

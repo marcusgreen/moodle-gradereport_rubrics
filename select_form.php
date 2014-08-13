@@ -30,19 +30,22 @@ class report_rubrics_select_form extends moodleform {
 
 	$assignments = $DB->get_records_sql('SELECT asg.id AS assignmentid, asg.name AS assignment FROM {assign} AS asg JOIN {course} AS crs ON crs.id = asg.course JOIN {grading_areas} AS gra ON asg.id = gra.id WHERE asg.course = ? and gra.activemethod = ?', array($this->_customdata['courseid'], 'rubric'));
 
-	$form_array = array(0=>'All');
+	$form_array = array(0=>'Select');
 
 	foreach($assignments as $item) {
 		$form_array[$item->assignmentid] = $item->assignment;
 	}
 
         $mform =& $this->_form;
-        //$mform->addElement ('select', 'assignmentid', get_string('assignmentidtype', 'report_rubrics'), $assignments);
-        $mform->addElement ('select', 'assignmentid', "Select assignment", $form_array);
+        $mform->addElement ('select', 'assignmentid', get_string('selectassignment', 'gradereport_rubrics'), $form_array);
         $mform->setType('assignmentid', PARAM_INT);
-	$mform->getElement('assignmentid')->setSelected(0);
-	$mform->addElement('hidden', 'id', $this->_customdata['courseid']);
-	$mform->setType('id', PARAM_INT);
+    	$mform->getElement('assignmentid')->setSelected(0);
+        $mform->addElement ('advcheckbox', 'displaylevel', get_string('displaylevel', 'gradereport_rubrics'));
+        $mform->getElement('displaylevel')->setValue(1);
+        $mform->addElement ('advcheckbox', 'displayremark', get_string('displayremark', 'gradereport_rubrics'));
+        $mform->getElement('displayremark')->setValue(1);
+    	$mform->addElement('hidden', 'id', $this->_customdata['courseid']);
+    	$mform->setType('id', PARAM_INT);
         $this->add_action_buttons(false, 'Go');
     }
 }

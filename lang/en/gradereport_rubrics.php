@@ -30,3 +30,7 @@ $string['assignmentidtype'] = 'Select a specific assignment or all to view resul
 $string['err_norecords'] = 'No records found';
 $string['excelcsvdownload'] = 'Download in Excel-compatible format (.csv)';
 $string['csvdownload'] = 'Download in spreadsheet format (UTF-8 .csv)';
+$string['selectassignment'] = 'Select assignment';
+$string['displaylevel'] = 'Display level';
+$string['displayremark'] = 'Display remarks';
+$string['rubrics:view'] = 'Can view the Rubrics report';

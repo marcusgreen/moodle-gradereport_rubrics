@@ -1,6 +1,8 @@
 Rubrics Grade report for Moodle 2.6
 ------------------------------------------
 
+@copyright 2014 Learning Technology Services, www.lts.ie - Lead Developer: Karen Holland
+
 It is a grade report designed to report on assignments graded with rubrics.
 
 To test:
