@@ -37,15 +37,22 @@ class report_rubrics_select_form extends moodleform {
 	}
 
         $mform =& $this->_form;
+
+        // check for any relevant assignments
+        if (count($assignments) == 0) {
+            $mform->addElement ('html', get_string('err_noassignments', 'gradereport_rubrics')); 
+            return;
+        }
+
         $mform->addElement ('select', 'assignmentid', get_string('selectassignment', 'gradereport_rubrics'), $form_array);
         $mform->setType('assignmentid', PARAM_INT);
-    	$mform->getElement('assignmentid')->setSelected(0);
+        $mform->getElement('assignmentid')->setSelected(0);
         $mform->addElement ('advcheckbox', 'displaylevel', get_string('displaylevel', 'gradereport_rubrics'));
         $mform->getElement('displaylevel')->setValue(1);
         $mform->addElement ('advcheckbox', 'displayremark', get_string('displayremark', 'gradereport_rubrics'));
         $mform->getElement('displayremark')->setValue(1);
-    	$mform->addElement('hidden', 'id', $this->_customdata['courseid']);
-    	$mform->setType('id', PARAM_INT);
+        $mform->addElement('hidden', 'id', $this->_customdata['courseid']);
+        $mform->setType('id', PARAM_INT);
         $this->add_action_buttons(false, 'Go');
     }
 }

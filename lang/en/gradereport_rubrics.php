@@ -22,15 +22,16 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['config_scale'] = 'A scale to use in report';
-$string['desc_scale'] = 'This is only an example config.';
-$string['pluginname'] = 'Rubrics report';
-$string['pluginname_help'] = 'New Rubrics report help';
 $string['assignmentidtype'] = 'Select a specific assignment or all to view results';
-$string['err_norecords'] = 'No records found';
-$string['excelcsvdownload'] = 'Download in Excel-compatible format (.csv)';
+$string['config_scale'] = 'A scale to use in report';
 $string['csvdownload'] = 'Download in spreadsheet format (UTF-8 .csv)';
-$string['selectassignment'] = 'Select assignment';
+$string['desc_scale'] = 'This is only an example config.';
 $string['displaylevel'] = 'Display level';
 $string['displayremark'] = 'Display remarks';
+$string['err_norecords'] = 'No records found';
+$string['err_noassignments'] = 'No relevent assignments have been found';
+$string['excelcsvdownload'] = 'Download in Excel-compatible format (.csv)';
+$string['pluginname'] = 'Rubrics report';
+$string['pluginname_help'] = 'New Rubrics report help';
 $string['rubrics:view'] = 'Can view the Rubrics report';
+$string['selectassignment'] = 'Select assignment';
