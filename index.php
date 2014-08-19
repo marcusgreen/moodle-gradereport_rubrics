@@ -58,6 +58,7 @@ $assignmentid = $userid = 0;
 $assignmentid = optional_param('assignmentid','0',PARAM_INT);
 $displaylevel = optional_param('displaylevel','1',PARAM_INT);
 $displayremark = optional_param('displayremark','1',PARAM_INT);
+$displaysummary = optional_param('displaysummary','1',PARAM_INT);
 
 if ($mform->is_cancelled()) {
 }
@@ -99,6 +100,7 @@ $report->excel = $format == 'excelcsv';
 $report->csv = $format == 'csv' || $report->excel;
 $report->displaylevel = ($displaylevel == 1);
 $report->displayremark = ($displayremark == 1);
+$report->displaysummary = ($displaysummary == 1);
 
 $report->show();
 

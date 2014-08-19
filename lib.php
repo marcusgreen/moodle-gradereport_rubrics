@@ -118,6 +118,8 @@ class grade_report_rubrics extends grade_report {
         global $DB, $CFG;
 
 	    $csv_output = "";
+        $summary_array = array();
+
         if (!$this->csv) {
             $output = html_writer::start_tag('div', array('class' => 'rubrics'));
             $table = new html_table();
@@ -171,17 +173,51 @@ class grade_report_rubrics extends grade_report {
                 if ($this->displayremark) { $cell->text .= " - ".$value->remark; }
                 $row->cells[] = $cell;
 		        $this_grade = round($value->grade, 2); // grade cell
+
+                if (!array_key_exists($value->criterionid, $summary_array)) {
+                    $summary_array[$value->criterionid]["sum"] = 0;
+                    $summary_array[$value->criterionid]["count"] = 0;
+                }
+                $summary_array[$value->criterionid]["sum"] += $rubric_array[$value->criterionid][$value->levelid]->score;
+                $summary_array[$value->criterionid]["count"]++;
                 
                 if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
 	        }
 
         $cell = new html_table_cell();
         $cell->text = $this_grade; // grade cell
+        if ($this_grade != "-") {
+            if (!array_key_exists("grade", $summary_array)) {
+                $summary_array["grade"]["sum"] = 0;
+                $summary_array["grade"]["count"] = 0;
+            }
+            $summary_array["grade"]["sum"] += $this_grade;
+            $summary_array["grade"]["count"]++;
+        }
         $row->cells[] = $cell;
         if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($this_grade), $this->excel).$sep;
 	    $table->data[] = $row;
             if ($this->csv) $csv_output .= $line;
         }
+
+        // summary row
+        if ($this->displaysummary) {
+            $row = new html_table_row();
+            $cell = new html_table_cell();
+            $cell->text = "Summary";
+            $row->cells[] = $cell;
+            if ($this->csv) $csv_output .= $this->csv_quote(strip_tags("Summary"), $this->excel).$sep;
+            foreach($summary_array as $sum) {
+                $ave = round($sum["sum"]/$sum["count"], 2);
+                $cell = new html_table_cell();
+                $cell->text .= $ave;
+                if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($ave), $this->excel).$sep;
+                $row->cells[] = $cell;
+            }
+            $table->data[] = $row;
+            if ($this->csv) $csv_output .= $line;
+        }
+
 
         if ($this->csv) {
             $output = $csv_output;

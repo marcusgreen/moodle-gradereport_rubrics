@@ -28,6 +28,7 @@ $string['csvdownload'] = 'Download in spreadsheet format (UTF-8 .csv)';
 $string['desc_scale'] = 'This is only an example config.';
 $string['displaylevel'] = 'Display level';
 $string['displayremark'] = 'Display remarks';
+$string['displaysummary'] = 'Display summary';
 $string['err_norecords'] = 'No records found';
 $string['err_noassignments'] = 'No relevent assignments have been found';
 $string['excelcsvdownload'] = 'Download in Excel-compatible format (.csv)';
