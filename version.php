@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,5 +22,5 @@
  */
 
 $plugin->version = 2012122102;
-$plugin->requires = 2011120100; //Moodle 2.2
+$plugin->requires = 2011120100; // Moodle 2.2.
 $plugin->component = 'gradereport_rubrics';

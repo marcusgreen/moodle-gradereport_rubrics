@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -22,24 +21,24 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-include('../../../config.php');
+require_once('../../../config.php');
 require_once($CFG->libdir .'/gradelib.php');
 require_once($CFG->dirroot.'/grade/lib.php');
 require_once($CFG->dirroot.'/grade/report/rubrics/lib.php');
 require_once("select_form.php");
 
-$courseid = required_param('id', PARAM_INT);// course id
+$courseid = required_param('id', PARAM_INT);// Course id.
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('invalidcourseid');
 }
 
-// CSV format
-$format = optional_param('format','',PARAM_ALPHA);
+// CSV format.
+$format = optional_param('format', '', PARAM_ALPHA);
 $excel = $format == 'excelcsv';
 $csv = $format == 'csv' || $excel;
 
-$PAGE->set_url(new moodle_url('/grade/report/rubrics/index.php', array('id'=>$courseid)));
+$PAGE->set_url(new moodle_url('/grade/report/rubrics/index.php', array('id' => $courseid)));
 
 require_login($courseid);
 $PAGE->set_pagelayout('report');
@@ -51,38 +50,34 @@ require_capability('gradereport/rubrics:view', $context);
 // Set up the form.
 $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 
-//$mform->set_data();
-
 // Set up some default info.
 $assignmentid = $userid = 0;
-$assignmentid = optional_param('assignmentid','0',PARAM_INT);
-$displaylevel = optional_param('displaylevel','1',PARAM_INT);
-$displayremark = optional_param('displayremark','1',PARAM_INT);
-$displaysummary = optional_param('displaysummary','1',PARAM_INT);
+$assignmentid = optional_param('assignmentid', '0', PARAM_INT);
+$displaylevel = optional_param('displaylevel', '1', PARAM_INT);
+$displayremark = optional_param('displayremark', '1', PARAM_INT);
+$displaysummary = optional_param('displaysummary', '1', PARAM_INT);
 
-if ($mform->is_cancelled()) {
-}
 // Did we get anything from the form?
-else if ($formdata = $mform->get_data()) {
+if ($formdata = $mform->get_data()) {
     // Get the users rubrics.
     $assignmentid = $formdata->assignmentid;
 }
 
 if (!$csv) {
-print_grade_page_head($COURSE->id, 'report', 'rubrics',
-                      get_string('pluginname', 'gradereport_rubrics') .
-                      $OUTPUT->help_icon('pluginname', 'gradereport_rubrics'));
+    print_grade_page_head($COURSE->id, 'report', 'rubrics',
+        get_string('pluginname', 'gradereport_rubrics') .
+        $OUTPUT->help_icon('pluginname', 'gradereport_rubrics'));
 
-// Display the form.
-$mform->display();
+    // Display the form.
+    $mform->display();
 
-grade_regrade_final_grades($courseid);//first make sure we have proper final grades
+    grade_regrade_final_grades($courseid); // First make sure we have proper final grades.
 } else {
-    $assignment = $DB->get_record_sql('SELECT asg.name FROM {assign} AS asg WHERE asg.id = ? limit 1', array($assignmentid));
+    $assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
     $shortname = format_string($assignment->name, true, array('context' => $context));
     header('Content-Disposition: attachment; filename=rubrics_report.'.
-        preg_replace('/[^a-z0-9-]/','_',core_text::strtolower(strip_tags($shortname))).'.csv');
-    // Unicode byte-order mark for Excel
+        preg_replace('/[^a-z0-9-]/', '_', core_text::strtolower(strip_tags($shortname))).'.csv');
+    // Unicode byte-order mark for Excel.
     if ($excel) {
         header('Content-Type: text/csv; charset=UTF-16LE');
         print chr(0xFF).chr(0xFE);
@@ -92,8 +87,9 @@ grade_regrade_final_grades($courseid);//first make sure we have proper final gra
 }
 
 
-$gpr = new grade_plugin_return(array('type'=>'report', 'plugin'=>'grader', 'courseid'=>$courseid, 'userid'=>$userid));// return tracking object
-$report = new grade_report_rubrics($courseid, $gpr, $context);// Initialise the grader report object
+$gpr = new grade_plugin_return(array('type' => 'report', 'plugin' => 'grader',
+    'courseid' => $courseid, 'userid' => $userid)); // Return tracking object.
+$report = new grade_report_rubrics($courseid, $gpr, $context); // Initialise the grader report object.
 $report->assignmentid = $assignmentid;
 $report->format = $format;
 $report->excel = $format == 'excelcsv';

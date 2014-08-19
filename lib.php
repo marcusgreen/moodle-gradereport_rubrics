@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -28,15 +27,15 @@ class grade_report_rubrics extends grade_report {
 
     public $output;
 
-    function __construct($courseid, $gpr, $context, $page=null) {
+    public function __construct($courseid, $gpr, $context, $page=null) {
         parent::__construct($courseid, $gpr, $context, $page);
         $this->course_grade_item = grade_item::fetch_course_item($this->courseid);
     }
 
-    function process_data($data){
+    public function process_data($data) {
     }
 
-    function process_action($target, $action){
+    public function process_action($target, $action) {
     }
 
     public function show() {
@@ -44,68 +43,75 @@ class grade_report_rubrics extends grade_report {
 
         $output = "";
         $assignmentid = $this->assignmentid;
-        if ($assignmentid == 0) { return($output); } // disabling all assignments option
+        if ($assignmentid == 0) {
+            return($output);
+        } // Disabling all assignments option.
 
-        // step one, find all enrolled users to course
-        // step three, loop through users to find their results
+        // Step one, find all enrolled users to course.
 
         $coursecontext = context_course::instance($this->course->id);
-        $users = get_enrolled_users($coursecontext, $withcapability = '', $groupid = 0, $userfields = 'u.id,CONCAT(u.lastname, \' \', u.firstname) AS student,u.firstname,u.*', $orderby = 'u.id');
+        $users = get_enrolled_users($coursecontext, $withcapability = '', $groupid = 0,
+            $userfields = 'u.id,CONCAT(u.lastname, \' \', u.firstname) AS student,u.firstname,u.*', $orderby = 'u.id');
         $data = array();
 
-        $rubric_array = array();
-        // step 2, find any rubrics related to assignment
+        $rubricarray = array();
+
+        // Step 2, find any rubrics related to assignment.
         $definitions = $DB->get_records_sql("select * from {grading_definitions} where areaid = ?", array($assignmentid));
-        foreach($definitions as $def) {
-            $criteria = $DB->get_records_sql("select * from {gradingform_rubric_criteria} where definitionid = ? order by sortorder", array($def->id));
-            foreach($criteria as $crit) {
+        foreach ($definitions as $def) {
+            $criteria = $DB->get_records_sql("select * from {gradingform_rubric_criteria}".
+                " where definitionid = ? order by sortorder", array($def->id));
+            foreach ($criteria as $crit) {
                 $levels = $DB->get_records_sql("select * from {gradingform_rubric_levels} where criterionid = ?", array($crit->id));
-                foreach($levels as $level) {
-                    $rubric_array[$crit->id][$level->id] = $level;
-                    $rubric_array[$crit->id]['crit_desc'] = $crit->description;
-                } 
+                foreach ($levels as $level) {
+                    $rubricarray[$crit->id][$level->id] = $level;
+                    $rubricarray[$crit->id]['crit_desc'] = $crit->description;
+                }
             }
         }
 
-        $userroles = $DB->get_records('role_assignments', array('contextid' => $coursecontext->id));
+        $roleassignments = $DB->get_records('role_assignments', array('contextid' => $coursecontext->id));
         $rolenames = role_get_names($coursecontext, ROLENAME_ALIAS, true);
-        $user_roles = array();
-        foreach ($userroles as $userrole) {
-            $user_roles[$userrole->userid] = $rolenames[$userrole->roleid];
+        $userroles = array();
+        foreach ($roleassignments as $role) {
+            $userroles[$role->userid] = $rolenames[$role->roleid];
         }
 
-        foreach($users as $user) {
-            if ($user_roles[$user->id] != "Student") {
+        foreach ($users as $user) {
+            if ($userroles[$user->id] != "Student") {
                 continue;
             } else {
-
-                $query = "SELECT grf.id, gd.id as defid, ag.userid, ag.grade, grf.instanceid, grf.criterionid, grf.levelid, grf.remark ".
-                " FROM {assign_grades} AS ag JOIN {grading_instances} as gin ON ag.id = gin.itemid".
-                " JOIN {grading_definitions} AS gd ON (gd.id = gin.definitionid )".
-                " JOIN {gradingform_rubric_fillings} AS grf ON (grf.instanceid = gin.id)".
-                " WHERE gin.status = ? and ag.assignment = ? and ag.userid = ?";
-                $query_array = array(1, $assignmentid, $user->id);
-                $userdata = $DB->get_records_sql($query, $query_array);
+                $query = "SELECT {gradingform_rubric_fillings}.id, {grading_definitions}.id as defid,".
+                " {assign_grades}.userid, {assign_grades}.grade, {gradingform_rubric_fillings}.instanceid,".
+                " {gradingform_rubric_fillings}.criterionid, {gradingform_rubric_fillings}.levelid,".
+                " {gradingform_rubric_fillings}.remark ".
+                " FROM {assign_grades} JOIN {grading_instances} ON {assign_grades}.id = {grading_instances}.itemid".
+                " JOIN {grading_definitions} ON ({grading_definitions}.id = {grading_instances}.definitionid )".
+                " JOIN {gradingform_rubric_fillings} ON ({gradingform_rubric_fillings}.instanceid = {grading_instances}.id)".
+                " WHERE {grading_instances}.status = ? and {assign_grades}.assignment = ? and {assign_grades}.userid = ?";
+                $queryarray = array(1, $assignmentid, $user->id);
+                $userdata = $DB->get_records_sql($query, $queryarray);
                 $data[$user->id] = array($user->student, $userdata);
             }
         }
 
-    	if (count($data)==0) {
+        if (count($data) == 0) {
             $output = get_string('err_norecords', 'gradereport_rubrics');
-    	} else {
-            // Links for download
+        } else {
+            // Links for download.
 
-            $link_url = "index.php?id={$this->course->id}&amp;assignmentid={$this->assignmentid}&amp;displaylevel={$this->displaylevel}&amp;displayremark={$this->displayremark}&amp;format=";
+            $linkurl = "index.php?id={$this->course->id}&amp;assignmentid={$this->assignmentid}&amp;".
+                "displaylevel={$this->displaylevel}&amp;displayremark={$this->displayremark}&amp;format=";
 
             if ((!$this->csv)) {
-                $output = '<ul class="rubrics-actions"><li><a href="'.$link_url.'csv">'.
-                    get_string('csvdownload','gradereport_rubrics').'</a></li>
-                    <li><a href="'.$link_url.'excelcsv">'.
-                    get_string('excelcsvdownload','gradereport_rubrics').'</a></li></ul>';
+                $output = '<ul class="rubrics-actions"><li><a href="'.$linkurl.'csv">'.
+                    get_string('csvdownload', 'gradereport_rubrics').'</a></li>
+                    <li><a href="'.$linkurl.'excelcsv">'.
+                    get_string('excelcsvdownload', 'gradereport_rubrics').'</a></li></ul>';
             }
 
-            // put data into table
-            $output .= $this->display_table($data, $rubric_array);
+            // Put data into table.
+            $output .= $this->display_table($data, $rubricarray);
         }
 
         $this->output = $output;
@@ -114,126 +120,128 @@ class grade_report_rubrics extends grade_report {
         }
     }
 
-    public function display_table($data, $rubric_array) {
+    public function display_table($data, $rubricarray) {
         global $DB, $CFG;
 
-	    $csv_output = "";
-        $summary_array = array();
+        $csvoutput = "";
+        $summaryarray = array();
 
         if (!$this->csv) {
             $output = html_writer::start_tag('div', array('class' => 'rubrics'));
             $table = new html_table();
-    	    $header_array = array();
-    	    $table->head = array(get_string('student','gradereport_rubrics'));
-            foreach($rubric_array as $key=>$value) {
-                $table->head[] = $rubric_array[$key]['crit_desc'];
+            $table->head = array(get_string('student', 'gradereport_rubrics'));
+            foreach ($rubricarray as $key => $value) {
+                $table->head[] = $rubricarray[$key]['crit_desc'];
             }
-            $table->head[] = get_string('grade','gradereport_rubrics');
+            $table->head[] = get_string('grade', 'gradereport_rubrics');
             $table->data = array();
             $table->data[] = new html_table_row();
-            $sep=",";
-            $line="\n";
+            $sep = ",";
+            $line = "\n";
         } else {
-	        if ($this->excel) {
+            if ($this->excel) {
                 print chr(0xFF).chr(0xFE);
-                $sep="\t".chr(0);
-                $line="\n".chr(0);
+                $sep = "\t".chr(0);
+                $line = "\n".chr(0);
             } else {
-                $sep=",";
-                $line="\n";
+                $sep = ",";
+                $line = "\n";
             }
-            // add csv headers
-            $csv_output .= $this->csv_quote(strip_tags(get_string('student','gradereport_rubrics')), $this->excel).$sep;
-            foreach($rubric_array as $key=>$value) {
-                $csv_output .= $this->csv_quote(strip_tags($rubric_array[$key]['crit_desc']), $this->excel).$sep;
+            // Add csv headers.
+            $csvoutput .= $this->csv_quote(strip_tags(get_string('student', 'gradereport_rubrics')), $this->excel).$sep;
+            foreach ($rubricarray as $key => $value) {
+                $csvoutput .= $this->csv_quote(strip_tags($rubricarray[$key]['crit_desc']), $this->excel).$sep;
             }
-            $csv_output .= $this->csv_quote(strip_tags(get_string('grade','gradereport_rubrics')), $this->excel).$sep;
-            $csv_output .= $line;
+            $csvoutput .= $this->csv_quote(strip_tags(get_string('grade', 'gradereport_rubrics')), $this->excel).$sep;
+            $csvoutput .= $line;
         }
 
-        foreach($data as $values) {
+        foreach ($data as $values) {
             $row = new html_table_row();
             $cell = new html_table_cell();
-            $cell->text = $values[0]; // student name
-            if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
+            $cell->text = $values[0]; // Student name.
+            $csvoutput .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
             $row->cells[] = $cell;
-            $this_grade = get_string('nograde','gradereport_rubrics');
-            if (count($values[1]) == 0) { // students with no marks, add fillers
-                foreach($rubric_array as $key=>$value) {
+            $thisgrade = get_string('nograde', 'gradereport_rubrics');
+            if (count($values[1]) == 0) { // Students with no marks, add fillers.
+                foreach ($rubricarray as $key => $value) {
                     $cell = new html_table_cell();
-                    $cell->text = get_string('nograde','gradereport_rubrics');
+                    $cell->text = get_string('nograde', 'gradereport_rubrics');
                     $row->cells[] = $cell;
-                    if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
+                    $csvoutput .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
                 }
             }
-	        foreach($values[1] as $value) { 
+            foreach ($values[1] as $value) {
                 $cell = new html_table_cell();
-                if ($this->displaylevel) { $cell->text = $rubric_array[$value->criterionid][$value->levelid]->definition." - "; }
-                $cell->text .= round($rubric_array[$value->criterionid][$value->levelid]->score, 2);
-                if ($this->displayremark) { $cell->text .= " - ".$value->remark; }
-                $row->cells[] = $cell;
-		        $this_grade = round($value->grade, 2); // grade cell
-
-                if (!array_key_exists($value->criterionid, $summary_array)) {
-                    $summary_array[$value->criterionid]["sum"] = 0;
-                    $summary_array[$value->criterionid]["count"] = 0;
+                if ($this->displaylevel) {
+                    $cell->text = $rubricarray[$value->criterionid][$value->levelid]->definition." - ";
                 }
-                $summary_array[$value->criterionid]["sum"] += $rubric_array[$value->criterionid][$value->levelid]->score;
-                $summary_array[$value->criterionid]["count"]++;
-                
-                if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
-	        }
+                $cell->text .= round($rubricarray[$value->criterionid][$value->levelid]->score, 2);
+                if ($this->displayremark) {
+                    $cell->text .= " - ".$value->remark;
+                }
+                $row->cells[] = $cell;
+                $thisgrade = round($value->grade, 2); // Grade cell.
 
-        $cell = new html_table_cell();
-        $cell->text = $this_grade; // grade cell
-        if ($this_grade != get_string('nograde','gradereport_rubrics')) {
-            if (!array_key_exists("grade", $summary_array)) {
-                $summary_array["grade"]["sum"] = 0;
-                $summary_array["grade"]["count"] = 0;
+                if (!array_key_exists($value->criterionid, $summaryarray)) {
+                    $summaryarray[$value->criterionid]["sum"] = 0;
+                    $summaryarray[$value->criterionid]["count"] = 0;
+                }
+                $summaryarray[$value->criterionid]["sum"] += $rubricarray[$value->criterionid][$value->levelid]->score;
+                $summaryarray[$value->criterionid]["count"]++;
+
+                $csvoutput .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
             }
-            $summary_array["grade"]["sum"] += $this_grade;
-            $summary_array["grade"]["count"]++;
-        }
-        $row->cells[] = $cell;
-        if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($this_grade), $this->excel).$sep;
-	    $table->data[] = $row;
-            if ($this->csv) $csv_output .= $line;
+
+            $cell = new html_table_cell();
+            $cell->text = $thisgrade; // Grade cell.
+            if ($thisgrade != get_string('nograde', 'gradereport_rubrics')) {
+                if (!array_key_exists("grade", $summaryarray)) {
+                    $summaryarray["grade"]["sum"] = 0;
+                    $summaryarray["grade"]["count"] = 0;
+                }
+                $summaryarray["grade"]["sum"] += $thisgrade;
+                $summaryarray["grade"]["count"]++;
+            }
+            $row->cells[] = $cell;
+            $csvoutput .= $this->csv_quote(strip_tags($thisgrade), $this->excel).$sep;
+            $table->data[] = $row;
+            $csvoutput .= $line;
         }
 
-        // summary row
+        // Summary row.
         if ($this->displaysummary) {
             $row = new html_table_row();
             $cell = new html_table_cell();
-            $cell->text = get_string('summary','gradereport_rubrics');
+            $cell->text = get_string('summary', 'gradereport_rubrics');
             $row->cells[] = $cell;
-            if ($this->csv) $csv_output .= $this->csv_quote(strip_tags("Summary"), $this->excel).$sep;
-            foreach($summary_array as $sum) {
-                $ave = round($sum["sum"]/$sum["count"], 2);
+            $csvoutput .= $this->csv_quote(strip_tags(get_string('summary', 'gradereport_rubrics')), $this->excel).$sep;
+            foreach ($summaryarray as $sum) {
+                $ave = round($sum["sum"] / $sum["count"], 2);
                 $cell = new html_table_cell();
                 $cell->text .= $ave;
-                if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($ave), $this->excel).$sep;
+                $csvoutput .= $this->csv_quote(strip_tags($ave), $this->excel).$sep;
                 $row->cells[] = $cell;
             }
             $table->data[] = $row;
-            if ($this->csv) $csv_output .= $line;
+            $csvoutput .= $line;
         }
 
-
         if ($this->csv) {
-            $output = $csv_output;
+            $output = $csvoutput;
         } else {
-	        $output .= html_writer::table($table);
+            $output .= html_writer::table($table);
             $output .= html_writer::end_tag('div');
         }
 
-	    return $output;
+        return $output;
     }
 
-    function csv_quote($value, $excel) {
+    public function csv_quote($value, $excel) {
         if ($excel) {
-            return core_text::convert('"'.str_replace('"',"'",$value).'"','UTF-8','UTF-16LE');
+            return core_text::convert('"'.str_replace('"', "'", $value).'"', 'UTF-8', 'UTF-16LE');
         } else {
-            return '"'.str_replace('"',"'",$value).'"';
+            return '"'.str_replace('"', "'", $value).'"';
         }
     }
 
@@ -241,20 +249,20 @@ class grade_report_rubrics extends grade_report {
         global $DB, $CFG;
 
         $grades = $DB->get_records('grade_grades', array('itemid' => $this->course_grade_item->id), 'userid', 'userid, finalgrade');
-        if(!is_array($grades)) {
+        if (!is_array($grades)) {
             $grades = array();
         }
 
         $this->moodle_grades = array();
 
         if ($this->course_grade_item->gradetype == GRADE_TYPE_SCALE) {
-            $pg_scale = new grade_scale(array('id' => $CFG->grade_report_rubrics_scale));
-            $scale_items = $pg_scale->load_items();
-            foreach ($this->moodle_students as $st)  {
+            $pgscale = new grade_scale(array('id' => $CFG->grade_report_rubrics_scale));
+            $scaleitems = $pgscale->load_items();
+            foreach ($this->moodle_students as $st) {
                 if (isset($grades[$st->id])) {
                     $fg = (int)$grades[$st->id]->finalgrade;
-                    if(isset($scale_items[$fg-1])) {
-                        $this->moodle_grades[$st->id] = $scale_items[$fg-1];
+                    if (isset($scaleitems[$fg - 1])) {
+                        $this->moodle_grades[$st->id] = $scaleitems[$fg - 1];
                     } else {
                         $this->moodle_grades[$st->id] = null;
                     }
@@ -263,7 +271,7 @@ class grade_report_rubrics extends grade_report {
                 }
             }
         } else {
-            foreach ($this->moodle_students as $st)  {
+            foreach ($this->moodle_students as $st) {
                 if (isset($grades[$st->id])) {
                     $this->moodle_grades[$st->id] = grade_format_gradevalue($grades[$st->id]->finalgrade,
                                                                         $this->course_grade_item, true,

@@ -25,26 +25,29 @@ require_once("$CFG->libdir/formslib.php");
 
 class report_rubrics_select_form extends moodleform {
 
-   public function definition() {
+    public function definition() {
         global $CFG, $DB;
 
-	$assignments = $DB->get_records_sql('SELECT asg.id AS assignmentid, asg.name AS assignment FROM {assign} AS asg JOIN {course} AS crs ON crs.id = asg.course JOIN {grading_areas} AS gra ON asg.id = gra.id WHERE asg.course = ? and gra.activemethod = ?', array($this->_customdata['courseid'], 'rubric'));
+        $assignments = $DB->get_records_sql('SELECT {assign}.id AS assignmentid, {assign}.name AS assignment '.
+            ' FROM {assign} JOIN {course} ON {course}.id = {assign}.course JOIN {grading_areas} '.
+            ' ON {assign}.id = {grading_areas}.id WHERE {assign}.course = ? and {grading_areas}.activemethod = ?',
+            array($this->_customdata['courseid'], 'rubric'));
 
-	$form_array = array(0=>'Select');
+        $formarray = array(0 => 'Select');
 
-	foreach($assignments as $item) {
-		$form_array[$item->assignmentid] = $item->assignment;
-	}
+        foreach ($assignments as $item) {
+            $formarray[$item->assignmentid] = $item->assignment;
+        }
 
         $mform =& $this->_form;
 
-        // check for any relevant assignments
+        // Check for any relevant assignments.
         if (count($assignments) == 0) {
-            $mform->addElement ('html', get_string('err_noassignments', 'gradereport_rubrics')); 
+            $mform->addElement ('html', get_string('err_noassignments', 'gradereport_rubrics'));
             return;
         }
 
-        $mform->addElement ('select', 'assignmentid', get_string('selectassignment', 'gradereport_rubrics'), $form_array);
+        $mform->addElement ('select', 'assignmentid', get_string('selectassignment', 'gradereport_rubrics'), $formarray);
         $mform->setType('assignmentid', PARAM_INT);
         $mform->getElement('assignmentid')->setSelected(0);
         $mform->addElement ('advcheckbox', 'displaylevel', get_string('displaylevel', 'gradereport_rubrics'));

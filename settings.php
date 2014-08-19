@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -26,16 +25,16 @@ defined('MOODLE_INTERNAL') || die;
 
 if ($ADMIN->fulltree) {
 
-    $scales_options = array(get_string('none'));
+    $scalesoptions = array(get_string('none'));
     if ($scales = $DB->get_records('scale', array('courseid' => 0), 'id', 'id, name')) {
-        foreach($scales as $obj){
-            $scales_options[$obj->id] = $obj->name;
+        foreach ($scales as $obj) {
+            $scalesoptions[$obj->id] = $obj->name;
         }
     }
     $settings->add(new admin_setting_configselect('grade_report_rubrics_scale',
                                                   get_string('config_scale', 'gradereport_rubrics'),
                                                   get_string('desc_scale', 'gradereport_rubrics'),
                                                   0,
-                                                  $scales_options));
+                                                  $scalesoptions));
 
 }
