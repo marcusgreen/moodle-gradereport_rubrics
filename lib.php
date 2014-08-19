@@ -124,11 +124,11 @@ class grade_report_rubrics extends grade_report {
             $output = html_writer::start_tag('div', array('class' => 'rubrics'));
             $table = new html_table();
     	    $header_array = array();
-    	    $table->head = array("Student");
+    	    $table->head = array(get_string('student','gradereport_rubrics'));
             foreach($rubric_array as $key=>$value) {
                 $table->head[] = $rubric_array[$key]['crit_desc'];
             }
-            $table->head[] = "Grade";
+            $table->head[] = get_string('grade','gradereport_rubrics');
             $table->data = array();
             $table->data[] = new html_table_row();
             $sep=",";
@@ -143,11 +143,11 @@ class grade_report_rubrics extends grade_report {
                 $line="\n";
             }
             // add csv headers
-            $csv_output .= $this->csv_quote(strip_tags("Student"), $this->excel).$sep;
+            $csv_output .= $this->csv_quote(strip_tags(get_string('student','gradereport_rubrics')), $this->excel).$sep;
             foreach($rubric_array as $key=>$value) {
                 $csv_output .= $this->csv_quote(strip_tags($rubric_array[$key]['crit_desc']), $this->excel).$sep;
             }
-            $csv_output .= $this->csv_quote(strip_tags("Grade"), $this->excel).$sep;
+            $csv_output .= $this->csv_quote(strip_tags(get_string('grade','gradereport_rubrics')), $this->excel).$sep;
             $csv_output .= $line;
         }
 
@@ -157,11 +157,11 @@ class grade_report_rubrics extends grade_report {
             $cell->text = $values[0]; // student name
             if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
             $row->cells[] = $cell;
-            $this_grade = "-";
+            $this_grade = get_string('nograde','gradereport_rubrics');
             if (count($values[1]) == 0) { // students with no marks, add fillers
                 foreach($rubric_array as $key=>$value) {
                     $cell = new html_table_cell();
-                    $cell->text = "-";
+                    $cell->text = get_string('nograde','gradereport_rubrics');
                     $row->cells[] = $cell;
                     if ($this->csv) $csv_output .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
                 }
@@ -186,7 +186,7 @@ class grade_report_rubrics extends grade_report {
 
         $cell = new html_table_cell();
         $cell->text = $this_grade; // grade cell
-        if ($this_grade != "-") {
+        if ($this_grade != get_string('nograde','gradereport_rubrics')) {
             if (!array_key_exists("grade", $summary_array)) {
                 $summary_array["grade"]["sum"] = 0;
                 $summary_array["grade"]["count"] = 0;
@@ -204,7 +204,7 @@ class grade_report_rubrics extends grade_report {
         if ($this->displaysummary) {
             $row = new html_table_row();
             $cell = new html_table_cell();
-            $cell->text = "Summary";
+            $cell->text = get_string('summary','gradereport_rubrics');
             $row->cells[] = $cell;
             if ($this->csv) $csv_output .= $this->csv_quote(strip_tags("Summary"), $this->excel).$sep;
             foreach($summary_array as $sum) {
