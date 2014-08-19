@@ -187,6 +187,7 @@ class grade_report_rubrics extends grade_report {
             $output = $csv_output;
         } else {
 	        $output .= html_writer::table($table);
+            $output .= html_writer::end_tag('div');
         }
 
 	    return $output;
