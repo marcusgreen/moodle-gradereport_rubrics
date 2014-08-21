@@ -81,14 +81,17 @@ class grade_report_rubrics extends grade_report {
             if ($userroles[$user->id] != "Student") {
                 continue;
             } else {
-                $query = "SELECT {gradingform_rubric_fillings}.id, {grading_definitions}.id as defid,".
-                " {assign_grades}.userid, {assign_grades}.grade, {gradingform_rubric_fillings}.instanceid,".
-                " {gradingform_rubric_fillings}.criterionid, {gradingform_rubric_fillings}.levelid,".
-                " {gradingform_rubric_fillings}.remark ".
-                " FROM {assign_grades} JOIN {grading_instances} ON {assign_grades}.id = {grading_instances}.itemid".
-                " JOIN {grading_definitions} ON ({grading_definitions}.id = {grading_instances}.definitionid )".
-                " JOIN {gradingform_rubric_fillings} ON ({gradingform_rubric_fillings}.instanceid = {grading_instances}.id)".
-                " WHERE {grading_instances}.status = ? and {assign_grades}.assignment = ? and {assign_grades}.userid = ?";
+                $query = "SELECT grf.id, gd.id as defid, ag.userid, ag.grade, grf.instanceid,".
+                    " grf.criterionid, grf.levelid, grf.remark".
+                    " FROM {assign_grades} ag".
+                    " JOIN {grading_instances} gin".
+                      " ON ag.id = gin.itemid".
+                    " JOIN {grading_definitions} gd".
+                      " ON (gd.id = gin.definitionid )".
+                    " JOIN {gradingform_rubric_fillings} grf".
+                      " ON (grf.instanceid = gin.id)".
+                    " WHERE gin.status = ? and ag.assignment = ? and ag.userid = ?";
+
                 $queryarray = array(1, $assignmentid, $user->id);
                 $userdata = $DB->get_records_sql($query, $queryarray);
                 $data[$user->id] = array($user->student, $userdata);
