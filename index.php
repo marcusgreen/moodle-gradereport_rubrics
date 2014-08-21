@@ -32,7 +32,6 @@ $displaylevel = optional_param('displaylevel', 1, PARAM_INT);
 $displayremark = optional_param('displayremark', 1, PARAM_INT);
 $displaysummary = optional_param('displaysummary', 1, PARAM_INT);
 $format = optional_param('format', '', PARAM_ALPHA);
-
 $courseid = required_param('id', PARAM_INT);// Course id.
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
@@ -84,11 +83,7 @@ if (!$csv) {
     }
 }
 
-// Set up some default info.
-//$userid = 0;
-
 $gpr = new grade_plugin_return(array('type' => 'report', 'plugin' => 'grader',
-//    'courseid' => $courseid, 'userid' => $userid)); // Return tracking object.
     'courseid' => $courseid)); // Return tracking object.
 $report = new grade_report_rubrics($courseid, $gpr, $context); // Initialise the grader report object.
 $report->assignmentid = $assignmentid;
