@@ -31,10 +31,9 @@ if ($ADMIN->fulltree) {
             $scalesoptions[$obj->id] = $obj->name;
         }
     }
-    $settings->add(new admin_setting_configselect('grade_report_rubrics_scale',
-                                                  get_string('config_scale', 'gradereport_rubrics'),
-                                                  get_string('desc_scale', 'gradereport_rubrics'),
-                                                  0,
-                                                  $scalesoptions));
-
+    $settings->add(new admin_setting_configselect('grade_report_rubrics/scale',
+        get_string('config_scale', 'gradereport_rubrics'),
+        get_string('desc_scale', 'gradereport_rubrics'),
+        0,
+        $scalesoptions));
 }

@@ -259,7 +259,8 @@ class grade_report_rubrics extends grade_report {
         $this->moodle_grades = array();
 
         if ($this->course_grade_item->gradetype == GRADE_TYPE_SCALE) {
-            $pgscale = new grade_scale(array('id' => $CFG->grade_report_rubrics_scale));
+            $config = get_config('grade_report_rubrics');
+            $pgscale = new grade_scale(array('id' => $config->scale));
             $scaleitems = $pgscale->load_items();
             foreach ($this->moodle_students as $st) {
                 if (isset($grades[$st->id])) {
