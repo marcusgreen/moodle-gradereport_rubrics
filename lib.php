@@ -50,8 +50,8 @@ class grade_report_rubrics extends grade_report {
         // Step one, find all enrolled users to course.
 
         $coursecontext = context_course::instance($this->course->id);
-        $users = get_enrolled_users($coursecontext, $withcapability = '', $groupid = 0,
-            $userfields = 'u.id,CONCAT(u.lastname, \' \', u.firstname) AS student,u.firstname,u.*', $orderby = 'u.id');
+        $users = get_enrolled_users($coursecontext, $withcapability = 'mod/assign:submit', $groupid = 0,
+            $userfields = 'u.*', $orderby = 'u.lastname');
         $data = array();
 
         $rubricarray = array();
@@ -70,32 +70,22 @@ class grade_report_rubrics extends grade_report {
             }
         }
 
-        $roleassignments = $DB->get_records('role_assignments', array('contextid' => $coursecontext->id));
-        $rolenames = role_get_names($coursecontext, ROLENAME_ALIAS, true);
-        $userroles = array();
-        foreach ($roleassignments as $role) {
-            $userroles[$role->userid] = $rolenames[$role->roleid];
-        }
-
         foreach ($users as $user) {
-            if ($userroles[$user->id] != "Student") {
-                continue;
-            } else {
-                $query = "SELECT grf.id, gd.id as defid, ag.userid, ag.grade, grf.instanceid,".
-                    " grf.criterionid, grf.levelid, grf.remark".
-                    " FROM {assign_grades} ag".
-                    " JOIN {grading_instances} gin".
-                      " ON ag.id = gin.itemid".
-                    " JOIN {grading_definitions} gd".
-                      " ON (gd.id = gin.definitionid )".
-                    " JOIN {gradingform_rubric_fillings} grf".
-                      " ON (grf.instanceid = gin.id)".
-                    " WHERE gin.status = ? and ag.assignment = ? and ag.userid = ?";
+            $fullname = fullname($user); // Get Moodle fullname.
+            $query = "SELECT grf.id, gd.id as defid, ag.userid, ag.grade, grf.instanceid,".
+                " grf.criterionid, grf.levelid, grf.remark".
+                " FROM {assign_grades} ag".
+                " JOIN {grading_instances} gin".
+                  " ON ag.id = gin.itemid".
+                " JOIN {grading_definitions} gd".
+                  " ON (gd.id = gin.definitionid )".
+                " JOIN {gradingform_rubric_fillings} grf".
+                  " ON (grf.instanceid = gin.id)".
+                " WHERE gin.status = ? and ag.assignment = ? and ag.userid = ?";
 
-                $queryarray = array(1, $assignmentid, $user->id);
-                $userdata = $DB->get_records_sql($query, $queryarray);
-                $data[$user->id] = array($user->student, $userdata);
-            }
+            $queryarray = array(1, $assignmentid, $user->id);
+            $userdata = $DB->get_records_sql($query, $queryarray);
+            $data[$user->id] = array($fullname, $userdata);
         }
 
         if (count($data) == 0) {
