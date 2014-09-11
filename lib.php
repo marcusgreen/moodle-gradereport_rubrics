@@ -94,7 +94,8 @@ class grade_report_rubrics extends grade_report {
             // Links for download.
 
             $linkurl = "index.php?id={$this->course->id}&amp;assignmentid={$this->assignmentid}&amp;".
-                "displaylevel={$this->displaylevel}&amp;displayremark={$this->displayremark}&amp;format=";
+                "displaylevel={$this->displaylevel}&amp;displayremark={$this->displayremark}&amp;".
+                "displaysummary={$this->displaysummary}&amp;format=";
 
             if ((!$this->csv)) {
                 $output = '<ul class="rubrics-actions"><li><a href="'.$linkurl.'csv">'.
@@ -109,14 +110,17 @@ class grade_report_rubrics extends grade_report {
             }
         }
 
+        echo("assignmentname = .{$this->assignmentname} again.");
         $this->output = $output;
         if (!$this->csv) {
             echo $output;
         } else {
+            
             if ($this->excel) {
                 require_once("$CFG->libdir/excellib.class.php");
 
-                $filename = 'rubrics_'.(time()).'.xls';
+                $filename = "rubricreport_{$this->assignmentname}_".(time()).".xls";
+                //$filename = 'rubrics_'.(time()).'.xls';
                 $downloadfilename = clean_filename($filename);
                 /// Creating a workbook
                 $workbook = new MoodleExcelWorkbook("-");
@@ -125,23 +129,16 @@ class grade_report_rubrics extends grade_report {
                 /// Adding the worksheet
                 $myxls = $workbook->add_worksheet($filename);
 
-                // add header fields
-                $pos = 0;
-                foreach($output[0] as $value) {
-                    //$newvalue = str_replace("\n",' ',htmlspecialchars_decode(strip_tags(nl2br($value))));
-                    //$myxls->write_string(0, $pos, $newvalue);
-                    //$myxls->write_string(0, $pos, $value);
-                    $pos++;
-                }
-
-/*
-                // running through data once format is fixed.
-                foreach($output as $ri=>$col){
-                    foreach($col as $ci=>$cv){
-                        $myxls->write_string($ri,$ci,$cv);
+                $row = 0;
+                // running through data.
+                foreach($output as $value){
+                    $col = 0;
+                    foreach($value as $newvalue){
+                        $myxls->write_string($row, $col, $newvalue);
+                        $col++;
                     }
+                    $row++;
                 }
-*/
 
                 $workbook->close();
                 exit;
@@ -149,6 +146,7 @@ class grade_report_rubrics extends grade_report {
                 require_once($CFG->libdir .'/csvlib.class.php');
 
                 $filename = "test";
+                $filename = "rubricreport_{$this->assignmentname}_".(time());
                 $csvexport = new csv_export_writer();
                 $csvexport->set_filename($filename);
 
@@ -165,43 +163,19 @@ class grade_report_rubrics extends grade_report {
     public function display_table($data, $rubricarray) {
         global $DB, $CFG;
 
-        $csvoutput = "";
         $summaryarray = array();
         $csvarray = array();
 
-        if (!$this->csv) {
-            $output = html_writer::start_tag('div', array('class' => 'rubrics'));
-            $table = new html_table();
-            $table->head = array(get_string('student', 'gradereport_rubrics'));
-            foreach ($rubricarray as $key => $value) {
-                $table->head[] = $rubricarray[$key]['crit_desc'];
-            }
-            $table->head[] = get_string('grade', 'gradereport_rubrics');
-            $table->data = array();
-            $table->data[] = new html_table_row();
-            $sep = ",";
-            $line = "\n";
-        } else {
-            if ($this->excel) {
-                print chr(0xFF).chr(0xFE);
-                $sep = "\t".chr(0);
-                $line = "\n".chr(0);
-            } else {
-                $sep = ",";
-                $line = "\n";
-            }
-            // Add csv headers.
-            $csvoutput .= $this->csv_quote(strip_tags(get_string('student', 'gradereport_rubrics')), $this->excel).$sep;
-            $csvheaderarray = array(get_string('student', 'gradereport_rubrics'));
-            foreach ($rubricarray as $key => $value) {
-                $csvheaderarray[] = $rubricarray[$key]['crit_desc'];
-                $csvoutput .= $this->csv_quote(strip_tags($rubricarray[$key]['crit_desc']), $this->excel).$sep;
-            }
-            $csvoutput .= $this->csv_quote(strip_tags(get_string('grade', 'gradereport_rubrics')), $this->excel).$sep;
-            $csvoutput .= $line;
-            $csvheaderarray[] = get_string('grade', 'gradereport_rubrics');
-            $csvarray[] = $csvheaderarray;
+        $output = html_writer::start_tag('div', array('class' => 'rubrics'));
+        $table = new html_table();
+        $table->head = array(get_string('student', 'gradereport_rubrics'));
+        foreach ($rubricarray as $key => $value) {
+            $table->head[] = $rubricarray[$key]['crit_desc'];
         }
+        $table->head[] = get_string('grade', 'gradereport_rubrics');
+        $csvarray[] = $table->head;
+        $table->data = array();
+        $table->data[] = new html_table_row();
 
         foreach ($data as $values) {
             $csvrow = array();
@@ -209,7 +183,6 @@ class grade_report_rubrics extends grade_report {
             $cell = new html_table_cell();
             $cell->text = $values[0]; // Student name.
             $csvrow[] = $values[0];
-            $csvoutput .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
             $row->cells[] = $cell;
             $thisgrade = get_string('nograde', 'gradereport_rubrics');
             if (count($values[1]) == 0) { // Students with no marks, add fillers.
@@ -217,7 +190,6 @@ class grade_report_rubrics extends grade_report {
                     $cell = new html_table_cell();
                     $cell->text = get_string('nograde', 'gradereport_rubrics');
                     $row->cells[] = $cell;
-                    $csvoutput .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
                     $csvrow[] = $thisgrade;
                 }
             }
@@ -240,7 +212,6 @@ class grade_report_rubrics extends grade_report {
                 $summaryarray[$value->criterionid]["sum"] += $rubricarray[$value->criterionid][$value->levelid]->score;
                 $summaryarray[$value->criterionid]["count"]++;
 
-                $csvoutput .= $this->csv_quote(strip_tags($cell->text), $this->excel).$sep;
                 $csvrow[] = $cell->text;
             }
 
@@ -256,9 +227,7 @@ class grade_report_rubrics extends grade_report {
                 $summaryarray["grade"]["count"]++;
             }
             $row->cells[] = $cell;
-            $csvoutput .= $this->csv_quote(strip_tags($thisgrade), $this->excel).$sep;
             $table->data[] = $row;
-            $csvoutput .= $line;
             $csvarray[] = $csvrow;
         }
 
@@ -269,22 +238,18 @@ class grade_report_rubrics extends grade_report {
             $cell->text = get_string('summary', 'gradereport_rubrics');
             $row->cells[] = $cell;
             $csvsummaryrow = array(get_string('summary', 'gradereport_rubrics'));
-            $csvoutput .= $this->csv_quote(strip_tags(get_string('summary', 'gradereport_rubrics')), $this->excel).$sep;
             foreach ($summaryarray as $sum) {
                 $ave = round($sum["sum"] / $sum["count"], 2);
                 $cell = new html_table_cell();
                 $cell->text .= $ave;
-                $csvoutput .= $this->csv_quote(strip_tags($ave), $this->excel).$sep;
                 $row->cells[] = $cell;
                 $csvsummaryrow[] = $cell->text;
             }
             $table->data[] = $row;
-            $csvoutput .= $line;
             $csvarray[] = $csvsummaryrow;
         }
 
         if ($this->csv) {
-            //$output = $csvoutput;
             $output = $csvarray;
         } else {
             $output .= html_writer::table($table);

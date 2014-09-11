@@ -55,6 +55,8 @@ $context = context_course::instance($course->id);
 
 require_capability('gradereport/rubrics:view', $context);
 
+$assignmentname = '';
+
 // Set up the form.
 $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 
@@ -62,6 +64,9 @@ $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 if ($formdata = $mform->get_data()) {
     // Get the users rubrics.
     $assignmentid = $formdata->assignmentid;
+
+    $assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
+    $assignmentname = format_string($assignment->name, true, array('context' => $context));
 }
 
 if (!$csv) {
@@ -73,18 +78,6 @@ if (!$csv) {
     $mform->display();
 
     grade_regrade_final_grades($courseid); // First make sure we have proper final grades.
-} else {
-    $assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
-    $shortname = format_string($assignment->name, true, array('context' => $context));
-//    header('Content-Disposition: attachment; filename=rubrics_report.'.
-//        preg_replace('/[^a-z0-9-]/', '_', core_text::strtolower(strip_tags($shortname))).'.csv');
-    // Unicode byte-order mark for Excel.
-    if ($excel) {
-//        header('Content-Type: text/csv; charset=UTF-16LE');
-//        print chr(0xFF).chr(0xFE);
-    } else {
-//        header('Content-Type: text/csv; charset=UTF-8');
-    }
 }
 
 $gpr = new grade_plugin_return(array('type' => 'report', 'plugin' => 'grader',
@@ -97,11 +90,9 @@ $report->csv = $format == 'csv' || $report->excel;
 $report->displaylevel = ($displaylevel == 1);
 $report->displayremark = ($displayremark == 1);
 $report->displaysummary = ($displaysummary == 1);
+$report->assignmentname = $assignmentname;
+echo("assignmentname is .{$assignmentname}.");
 
 $report->show();
-
-if ($report->csv) {
-    exit;
-}
 
 echo $OUTPUT->footer();
