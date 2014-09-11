@@ -42,10 +42,14 @@ if (!$course = $DB->get_record('course', array('id' => $courseid))) {
 $excel = $format == 'excelcsv';
 $csv = $format == 'csv' || $excel;
 
-$PAGE->set_url(new moodle_url('/grade/report/rubrics/index.php', array('id' => $courseid)));
+if (!$csv) {
+    $PAGE->set_url(new moodle_url('/grade/report/rubrics/index.php', array('id' => $courseid)));
+}
 
 require_login($courseid);
-$PAGE->set_pagelayout('report');
+if (!$csv) {
+    $PAGE->set_pagelayout('report');
+}
 
 $context = context_course::instance($course->id);
 
@@ -72,14 +76,14 @@ if (!$csv) {
 } else {
     $assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
     $shortname = format_string($assignment->name, true, array('context' => $context));
-    header('Content-Disposition: attachment; filename=rubrics_report.'.
-        preg_replace('/[^a-z0-9-]/', '_', core_text::strtolower(strip_tags($shortname))).'.csv');
+//    header('Content-Disposition: attachment; filename=rubrics_report.'.
+//        preg_replace('/[^a-z0-9-]/', '_', core_text::strtolower(strip_tags($shortname))).'.csv');
     // Unicode byte-order mark for Excel.
     if ($excel) {
-        header('Content-Type: text/csv; charset=UTF-16LE');
-        print chr(0xFF).chr(0xFE);
+//        header('Content-Type: text/csv; charset=UTF-16LE');
+//        print chr(0xFF).chr(0xFE);
     } else {
-        header('Content-Type: text/csv; charset=UTF-8');
+//        header('Content-Type: text/csv; charset=UTF-8');
     }
 }
 
@@ -97,7 +101,6 @@ $report->displaysummary = ($displaysummary == 1);
 $report->show();
 
 if ($report->csv) {
-    echo($report->output);
     exit;
 }
 
