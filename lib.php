@@ -110,7 +110,6 @@ class grade_report_rubrics extends grade_report {
             }
         }
 
-        echo("assignmentname = .{$this->assignmentname} again.");
         $this->output = $output;
         if (!$this->csv) {
             echo $output;
@@ -119,8 +118,7 @@ class grade_report_rubrics extends grade_report {
             if ($this->excel) {
                 require_once("$CFG->libdir/excellib.class.php");
 
-                $filename = "rubricreport_{$this->assignmentname}_".(time()).".xls";
-                //$filename = 'rubrics_'.(time()).'.xls';
+                $filename = "rubricreport_{$this->assignmentname}.xls";
                 $downloadfilename = clean_filename($filename);
                 /// Creating a workbook
                 $workbook = new MoodleExcelWorkbook("-");
@@ -145,8 +143,7 @@ class grade_report_rubrics extends grade_report {
             } else {
                 require_once($CFG->libdir .'/csvlib.class.php');
 
-                $filename = "test";
-                $filename = "rubricreport_{$this->assignmentname}_".(time());
+                $filename = "rubricreport_{$this->assignmentname}";    
                 $csvexport = new csv_export_writer();
                 $csvexport->set_filename($filename);
 

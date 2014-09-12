@@ -64,10 +64,10 @@ $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 if ($formdata = $mform->get_data()) {
     // Get the users rubrics.
     $assignmentid = $formdata->assignmentid;
-
-    $assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
-    $assignmentname = format_string($assignment->name, true, array('context' => $context));
 }
+
+$assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
+$assignmentname = format_string($assignment->name, true, array('context' => $context));
 
 if (!$csv) {
     print_grade_page_head($COURSE->id, 'report', 'rubrics',
@@ -91,7 +91,6 @@ $report->displaylevel = ($displaylevel == 1);
 $report->displayremark = ($displayremark == 1);
 $report->displaysummary = ($displaysummary == 1);
 $report->assignmentname = $assignmentname;
-echo("assignmentname is .{$assignmentname}.");
 
 $report->show();
 
