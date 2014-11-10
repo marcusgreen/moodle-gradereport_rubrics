@@ -54,10 +54,18 @@ class grade_report_rubrics extends grade_report {
             $userfields = 'u.*', $orderby = 'u.lastname');
         $data = array();
 
+        // Process relevant grading area id from assignmentid and courseid.
+
+        $area = $DB->get_record_sql('select gra.id as areaid from {course_modules} cm'.
+            ' join {context} con on cm.id=con.instanceid'.
+            ' join {grading_areas} gra on gra.contextid = con.id'.
+            ' where cm.module = ? and cm.course = ? and cm.instance = ? and gra.activemethod = ?',
+            array(1, $this->course->id, $assignmentid, 'rubric'));
+
         $rubricarray = array();
 
         // Step 2, find any rubrics related to assignment.
-        $definitions = $DB->get_records_sql("select * from {grading_definitions} where areaid = ?", array($assignmentid));
+        $definitions = $DB->get_records_sql("select * from {grading_definitions} where areaid = ?", array($area->areaid));
         foreach ($definitions as $def) {
             $criteria = $DB->get_records_sql("select * from {gradingform_rubric_criteria}".
                 " where definitionid = ? order by sortorder", array($def->id));
