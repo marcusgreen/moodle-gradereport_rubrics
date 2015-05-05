@@ -21,6 +21,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$plugin->version = 2015022302;
+$plugin->version = 2015050100;
 $plugin->requires = 2011120100; // Moodle 2.2.
 $plugin->component = 'gradereport_rubrics';

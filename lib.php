@@ -93,7 +93,14 @@ class grade_report_rubrics extends grade_report {
 
             $queryarray = array(1, $assignmentid, $user->id);
             $userdata = $DB->get_records_sql($query, $queryarray);
-            $data[$user->id] = array($fullname, $userdata);
+
+            $query2 = "SELECT gig.feedback".
+                " FROM {grade_items} git".
+                " JOIN {grade_grades} gig".
+                " ON git.id = gig.itemid".
+                " WHERE git.iteminstance = ? and gig.userid = ?";
+            $feedback = $DB->get_record_sql($query2, array($assignmentid, $user->id));
+            $data[$user->id] = array($fullname, $userdata, $feedback);
         }
 
         if (count($data) == 0) {
@@ -177,6 +184,7 @@ class grade_report_rubrics extends grade_report {
         foreach ($rubricarray as $key => $value) {
             $table->head[] = $rubricarray[$key]['crit_desc'];
         }
+        if ($this->displayremark) { $table->head[] = get_string('feedback', 'gradereport_rubrics'); }
         $table->head[] = get_string('grade', 'gradereport_rubrics');
         $csvarray[] = $table->head;
         $table->data = array();
@@ -200,12 +208,12 @@ class grade_report_rubrics extends grade_report {
             }
             foreach ($values[1] as $value) {
                 $cell = new html_table_cell();
+                $cell->text = "<div class=\"rubrics_points\">".round($rubricarray[$value->criterionid][$value->levelid]->score, 2)." points</div>";
                 if ($this->displaylevel) {
-                    $cell->text = $rubricarray[$value->criterionid][$value->levelid]->definition." - ";
+                    $cell->text .= "<div class=\"rubrics_level\">".$rubricarray[$value->criterionid][$value->levelid]->definition."</div>";
                 }
-                $cell->text .= round($rubricarray[$value->criterionid][$value->levelid]->score, 2);
                 if ($this->displayremark) {
-                    $cell->text .= " - ".$value->remark;
+                    $cell->text .= $value->remark;
                 }
                 $row->cells[] = $cell;
                 $thisgrade = round($value->grade, 2); // Grade cell.
@@ -218,6 +226,12 @@ class grade_report_rubrics extends grade_report {
                 $summaryarray[$value->criterionid]["count"]++;
 
                 $csvrow[] = $cell->text;
+            }
+
+            if ($this->displayremark) {
+                $cell = new html_table_cell();
+                $cell->text = $values[2]->feedback; // Feedback cell.
+                $row->cells[] = $cell;
             }
 
             $cell = new html_table_cell();
