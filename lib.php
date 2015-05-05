@@ -209,11 +209,14 @@ class grade_report_rubrics extends grade_report {
             foreach ($values[1] as $value) {
                 $cell = new html_table_cell();
                 $cell->text = "<div class=\"rubrics_points\">".round($rubricarray[$value->criterionid][$value->levelid]->score, 2)." points</div>";
+                $csvtext = round($rubricarray[$value->criterionid][$value->levelid]->score, 2)." points - ";
                 if ($this->displaylevel) {
                     $cell->text .= "<div class=\"rubrics_level\">".$rubricarray[$value->criterionid][$value->levelid]->definition."</div>";
+                    $csvtext .= $rubricarray[$value->criterionid][$value->levelid]->definition." - ";
                 }
                 if ($this->displayremark) {
                     $cell->text .= $value->remark;
+                    $csvtext .= $value->remark;
                 }
                 $row->cells[] = $cell;
                 $thisgrade = round($value->grade, 2); // Grade cell.
@@ -225,7 +228,7 @@ class grade_report_rubrics extends grade_report {
                 $summaryarray[$value->criterionid]["sum"] += $rubricarray[$value->criterionid][$value->levelid]->score;
                 $summaryarray[$value->criterionid]["count"]++;
 
-                $csvrow[] = $cell->text;
+                $csvrow[] = $csvtext;
             }
 
             if ($this->displayremark) {
