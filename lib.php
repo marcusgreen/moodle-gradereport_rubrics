@@ -235,6 +235,8 @@ class grade_report_rubrics extends grade_report {
                 $cell = new html_table_cell();
                 $cell->text = $values[2]->feedback; // Feedback cell.
                 $row->cells[] = $cell;
+                $csvrow[] = $cell->text;
+                $summaryarray["feedback"]["sum"] = get_string('feedback', 'gradereport_rubrics');                
             }
 
             $cell = new html_table_cell();
@@ -261,9 +263,12 @@ class grade_report_rubrics extends grade_report {
             $row->cells[] = $cell;
             $csvsummaryrow = array(get_string('summary', 'gradereport_rubrics'));
             foreach ($summaryarray as $sum) {
-                $ave = round($sum["sum"] / $sum["count"], 2);
                 $cell = new html_table_cell();
-                $cell->text .= $ave;
+                if ($sum["sum"] == get_string('feedback', 'gradereport_rubrics')) {
+                    $cell->text = " ";
+                } else {
+                    $cell->text = round($sum["sum"] / $sum["count"], 2);
+                }
                 $row->cells[] = $cell;
                 $csvsummaryrow[] = $cell->text;
             }
