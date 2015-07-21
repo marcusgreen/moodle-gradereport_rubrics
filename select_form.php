@@ -59,6 +59,8 @@ class report_rubrics_select_form extends moodleform {
         $mform->getElement('displayremark')->setValue(1);
         $mform->addElement ('advcheckbox', 'displaysummary', get_string('displaysummary', 'gradereport_rubrics'));
         $mform->getElement('displaysummary')->setValue(1);
+        $mform->addElement ('advcheckbox', 'displayemail', get_string('displayemail', 'gradereport_rubrics'));
+        $mform->getElement('displayemail')->setValue(0);
         $mform->addElement('hidden', 'id', $this->_customdata['courseid']);
         $mform->setType('id', PARAM_INT);
         $this->add_action_buttons(false, 'Go');
