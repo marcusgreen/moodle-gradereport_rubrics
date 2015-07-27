@@ -110,7 +110,8 @@ class grade_report_rubrics extends grade_report {
 
             $linkurl = "index.php?id={$this->course->id}&amp;assignmentid={$this->assignmentid}&amp;".
                 "displaylevel={$this->displaylevel}&amp;displayremark={$this->displayremark}&amp;".
-                "displaysummary={$this->displaysummary}&amp;displayemail={$this->displayemail}&amp;format=";
+                "displaysummary={$this->displaysummary}&amp;displayemail={$this->displayemail}&amp;".
+                "displayidnumber={$this->displayidnumber}&amp;format=";
 
             if ((!$this->csv)) {
                 $output = '<ul class="rubrics-actions"><li><a href="'.$linkurl.'csv">'.
@@ -181,8 +182,10 @@ class grade_report_rubrics extends grade_report {
         $output = html_writer::start_tag('div', array('class' => 'rubrics'));
         $table = new html_table();
         $table->head = array(get_string('student', 'gradereport_rubrics'));
-        if ($this->displayemail) {
+        if ($this->displayidnumber) {
             $table->head[] = get_string('studentid', 'gradereport_rubrics');
+        }
+        if ($this->displayemail) {
             $table->head[] = get_string('studentemail', 'gradereport_rubrics');
         }
         foreach ($rubricarray as $key => $value) {
@@ -201,11 +204,13 @@ class grade_report_rubrics extends grade_report {
             $cell->text = $values[0]; // Student name.
             $csvrow[] = $values[0];
             $row->cells[] = $cell;
-            if ($this->displayemail) { 
+            if ($this->displayidnumber) { 
                 $cell = new html_table_cell();
                 $cell->text = $key; // Student id.
                 $row->cells[] = $cell;
                 $csvrow[] = $key;
+            }
+            if ($this->displayemail) {
                 $cell = new html_table_cell();
                 $cell->text = $values[1]; // Student email.
                 $row->cells[] = $cell;
@@ -279,13 +284,16 @@ class grade_report_rubrics extends grade_report {
             $cell->text = get_string('summary', 'gradereport_rubrics');
             $row->cells[] = $cell;
             $csvsummaryrow = array(get_string('summary', 'gradereport_rubrics'));
-            if ($this->displayemail) {
-                // Adding placeholder cells
+            if ($this->displayidnumber) { // Adding placeholder cells.
                 $cell = new html_table_cell();
                 $cell->text = " ";
                 $row->cells[] = $cell;
-                $row->cells[] = $cell;
                 $csvsummaryrow[] = $cell->text;
+            }
+            if ($this->displayemail) { // Adding placeholder cells.
+                $cell = new html_table_cell();
+                $cell->text = " ";
+                $row->cells[] = $cell;
                 $csvsummaryrow[] = $cell->text;
             }
             foreach ($summaryarray as $sum) {
