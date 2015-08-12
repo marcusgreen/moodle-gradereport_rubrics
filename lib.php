@@ -93,7 +93,14 @@ class grade_report_rubrics extends grade_report {
 
             $queryarray = array(1, $assignmentid, $user->id);
             $userdata = $DB->get_records_sql($query, $queryarray);
-            $data[$user->id] = array($fullname, $userdata);
+
+            $query2 = "SELECT gig.feedback".
+                " FROM {grade_items} git".
+                " JOIN {grade_grades} gig".
+                " ON git.id = gig.itemid".
+                " WHERE git.iteminstance = ? and gig.userid = ?";
+            $feedback = $DB->get_record_sql($query2, array($assignmentid, $user->id));
+            $data[$user->idnumber] = array($fullname, $user->email, $userdata, $feedback);
         }
 
         if (count($data) == 0) {
@@ -103,7 +110,8 @@ class grade_report_rubrics extends grade_report {
 
             $linkurl = "index.php?id={$this->course->id}&amp;assignmentid={$this->assignmentid}&amp;".
                 "displaylevel={$this->displaylevel}&amp;displayremark={$this->displayremark}&amp;".
-                "displaysummary={$this->displaysummary}&amp;format=";
+                "displaysummary={$this->displaysummary}&amp;displayemail={$this->displayemail}&amp;".
+                "displayidnumber={$this->displayidnumber}&amp;format=";
 
             if ((!$this->csv)) {
                 $output = '<ul class="rubrics-actions"><li><a href="'.$linkurl.'csv">'.
@@ -173,23 +181,42 @@ class grade_report_rubrics extends grade_report {
         $output = html_writer::start_tag('div', array('class' => 'rubrics'));
         $table = new html_table();
         $table->head = array(get_string('student', 'gradereport_rubrics'));
+        if ($this->displayidnumber) {
+            $table->head[] = get_string('studentid', 'gradereport_rubrics');
+        }
+        if ($this->displayemail) {
+            $table->head[] = get_string('studentemail', 'gradereport_rubrics');
+        }
         foreach ($rubricarray as $key => $value) {
             $table->head[] = $rubricarray[$key]['crit_desc'];
         }
+        if ($this->displayremark) { $table->head[] = get_string('feedback', 'gradereport_rubrics'); }
         $table->head[] = get_string('grade', 'gradereport_rubrics');
         $csvarray[] = $table->head;
         $table->data = array();
         $table->data[] = new html_table_row();
 
-        foreach ($data as $values) {
+        foreach ($data as $key => $values) {
             $csvrow = array();
             $row = new html_table_row();
             $cell = new html_table_cell();
             $cell->text = $values[0]; // Student name.
             $csvrow[] = $values[0];
             $row->cells[] = $cell;
+            if ($this->displayidnumber) { 
+                $cell = new html_table_cell();
+                $cell->text = $key; // Student id.
+                $row->cells[] = $cell;
+                $csvrow[] = $key;
+            }
+            if ($this->displayemail) {
+                $cell = new html_table_cell();
+                $cell->text = $values[1]; // Student email.
+                $row->cells[] = $cell;
+                $csvrow[] = $values[1];
+            }
             $thisgrade = get_string('nograde', 'gradereport_rubrics');
-            if (count($values[1]) == 0) { // Students with no marks, add fillers.
+            if (count($values[2]) == 0) { // Students with no marks, add fillers.
                 foreach ($rubricarray as $key => $value) {
                     $cell = new html_table_cell();
                     $cell->text = get_string('nograde', 'gradereport_rubrics');
@@ -197,14 +224,17 @@ class grade_report_rubrics extends grade_report {
                     $csvrow[] = $thisgrade;
                 }
             }
-            foreach ($values[1] as $value) {
+            foreach ($values[2] as $value) {
                 $cell = new html_table_cell();
+                $cell->text = "<div class=\"rubrics_points\">".round($rubricarray[$value->criterionid][$value->levelid]->score, 2)." points</div>";
+                $csvtext = round($rubricarray[$value->criterionid][$value->levelid]->score, 2)." points - ";
                 if ($this->displaylevel) {
-                    $cell->text = $rubricarray[$value->criterionid][$value->levelid]->definition." - ";
+                    $cell->text .= "<div class=\"rubrics_level\">".$rubricarray[$value->criterionid][$value->levelid]->definition."</div>";
+                    $csvtext .= $rubricarray[$value->criterionid][$value->levelid]->definition." - ";
                 }
-                $cell->text .= round($rubricarray[$value->criterionid][$value->levelid]->score, 2);
                 if ($this->displayremark) {
-                    $cell->text .= " - ".$value->remark;
+                    $cell->text .= $value->remark;
+                    $csvtext .= $value->remark;
                 }
                 $row->cells[] = $cell;
                 $thisgrade = round($value->grade, 2); // Grade cell.
@@ -216,7 +246,18 @@ class grade_report_rubrics extends grade_report {
                 $summaryarray[$value->criterionid]["sum"] += $rubricarray[$value->criterionid][$value->levelid]->score;
                 $summaryarray[$value->criterionid]["count"]++;
 
+                $csvrow[] = $csvtext;
+            }
+
+            if ($this->displayremark) {
+                $cell = new html_table_cell();
+                if (is_object($values[3])) { $cell->text = $values[3]->feedback; } // Feedback cell.
+                if (empty($cell->text)) {
+                    $cell->text = get_string('nograde', 'gradereport_rubrics');
+                }
+                $row->cells[] = $cell;
                 $csvrow[] = $cell->text;
+                $summaryarray["feedback"]["sum"] = get_string('feedback', 'gradereport_rubrics');                
             }
 
             $cell = new html_table_cell();
@@ -242,10 +283,25 @@ class grade_report_rubrics extends grade_report {
             $cell->text = get_string('summary', 'gradereport_rubrics');
             $row->cells[] = $cell;
             $csvsummaryrow = array(get_string('summary', 'gradereport_rubrics'));
-            foreach ($summaryarray as $sum) {
-                $ave = round($sum["sum"] / $sum["count"], 2);
+            if ($this->displayidnumber) { // Adding placeholder cells.
                 $cell = new html_table_cell();
-                $cell->text .= $ave;
+                $cell->text = " ";
+                $row->cells[] = $cell;
+                $csvsummaryrow[] = $cell->text;
+            }
+            if ($this->displayemail) { // Adding placeholder cells.
+                $cell = new html_table_cell();
+                $cell->text = " ";
+                $row->cells[] = $cell;
+                $csvsummaryrow[] = $cell->text;
+            }
+            foreach ($summaryarray as $sum) {
+                $cell = new html_table_cell();
+                if ($sum["sum"] == get_string('feedback', 'gradereport_rubrics')) {
+                    $cell->text = " ";
+                } else {
+                    $cell->text = round($sum["sum"] / $sum["count"], 2);
+                }
                 $row->cells[] = $cell;
                 $csvsummaryrow[] = $cell->text;
             }

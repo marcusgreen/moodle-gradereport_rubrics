@@ -31,6 +31,8 @@ $assignmentid = optional_param('assignmentid', 0, PARAM_INT);
 $displaylevel = optional_param('displaylevel', 1, PARAM_INT);
 $displayremark = optional_param('displayremark', 1, PARAM_INT);
 $displaysummary = optional_param('displaysummary', 1, PARAM_INT);
+$displayidnumber = optional_param('displayidnumber', 1, PARAM_INT);
+$displayemail = optional_param('displayemail', 1, PARAM_INT);
 $format = optional_param('format', '', PARAM_ALPHA);
 $courseid = required_param('id', PARAM_INT);// Course id.
 
@@ -64,8 +66,9 @@ $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 if ($formdata = $mform->get_data()) {
     // Get the users rubrics.
     $assignmentid = $formdata->assignmentid;
+}
 
-
+if ($assignmentid!=0) {
     $assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
     $assignmentname = format_string($assignment->name, true, array('context' => $context));
 }
@@ -91,6 +94,8 @@ $report->csv = $format == 'csv' || $report->excel;
 $report->displaylevel = ($displaylevel == 1);
 $report->displayremark = ($displayremark == 1);
 $report->displaysummary = ($displaysummary == 1);
+$report->displayidnumber = ($displayidnumber == 1);
+$report->displayemail = ($displayemail == 1);
 $report->assignmentname = $assignmentname;
 
 $report->show();
