@@ -122,24 +122,23 @@ class grade_report_rubrics extends grade_report {
         if (!$this->csv) {
             echo $output;
         } else {
-            
             if ($this->excel) {
                 require_once("$CFG->libdir/excellib.class.php");
 
                 $filename = "rubricreport_{$this->assignmentname}.xls";
                 $downloadfilename = clean_filename($filename);
-                /// Creating a workbook
+                // Creating a workbook.
                 $workbook = new MoodleExcelWorkbook("-");
-                /// Sending HTTP headers
+                // Sending HTTP headers.
                 $workbook->send($downloadfilename);
-                /// Adding the worksheet
+                // Adding the worksheet.
                 $myxls = $workbook->add_worksheet($filename);
 
                 $row = 0;
-                // running through data.
-                foreach($output as $value){
+                // Running through data.
+                foreach ($output as $value) {
                     $col = 0;
-                    foreach($value as $newvalue){
+                    foreach ($value as $newvalue) {
                         $myxls->write_string($row, $col, $newvalue);
                         $col++;
                     }
@@ -151,11 +150,11 @@ class grade_report_rubrics extends grade_report {
             } else {
                 require_once($CFG->libdir .'/csvlib.class.php');
 
-                $filename = "rubricreport_{$this->assignmentname}";    
+                $filename = "rubricreport_{$this->assignmentname}";
                 $csvexport = new csv_export_writer();
                 $csvexport->set_filename($filename);
 
-                foreach($output as $value) {
+                foreach ($output as $value) {
                     $csvexport->add_data($value);
                 }
                 $csvexport->download_file();
