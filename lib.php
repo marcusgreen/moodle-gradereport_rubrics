@@ -98,8 +98,8 @@ class grade_report_rubrics extends grade_report {
                 " FROM {grade_items} git".
                 " JOIN {grade_grades} gig".
                 " ON git.id = gig.itemid".
-                " WHERE git.iteminstance = ? and gig.userid = ?";
-            $feedback = $DB->get_record_sql($query2, array($assignmentid, $user->id));
+                " WHERE git.iteminstance = ? and git.itemtype = ? and gig.userid = ?";
+            $feedback = $DB->get_record_sql($query2, array($assignmentid, 'mod', $user->id));
             $data[$user->idnumber] = array($fullname, $user->email, $userdata, $feedback);
         }
 
