@@ -98,9 +98,9 @@ class grade_report_rubrics extends grade_report {
                 " FROM {grade_items} git".
                 " JOIN {grade_grades} gig".
                 " ON git.id = gig.itemid".
-                " WHERE git.iteminstance = ? and gig.userid = ?";
-            $feedback = $DB->get_record_sql($query2, array($assignmentid, $user->id));
-            $data[$user->idnumber] = array($fullname, $user->email, $userdata, $feedback);
+                " WHERE git.iteminstance = ? and git.itemmodule = ? and gig.userid = ?";
+            $feedback = $DB->get_record_sql($query2, array($assignmentid, 'assign',  $user->id));
+            $data[$user->id] = array($fullname, $user->email, $userdata, $feedback, $user->idnumber);
         }
 
         if (count($data) == 0) {
@@ -205,9 +205,9 @@ class grade_report_rubrics extends grade_report {
             $row->cells[] = $cell;
             if ($this->displayidnumber) { 
                 $cell = new html_table_cell();
-                $cell->text = $key; // Student id.
+                $cell->text = $values[4]; // Student id.
                 $row->cells[] = $cell;
-                $csvrow[] = $key;
+                $csvrow[] = $values[4];
             }
             if ($this->displayemail) {
                 $cell = new html_table_cell();
