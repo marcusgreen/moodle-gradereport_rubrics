@@ -38,6 +38,7 @@ $string['grade'] = 'Grade';
 $string['nograde'] = '-';
 $string['pluginname'] = 'Rubrics report';
 $string['pluginname_help'] = 'This report displays the Rubrics grading details per student. Tick or untick options to customise the HTML or downloadable results';
+$string['privacy:metadata'] = 'The Rubrics report only reports on data held elsewhere and does not store any personal data.';
 $string['rubrics:access'] = 'Can access the Rubrics report';
 $string['rubrics:view'] = 'Can view the Rubrics report';
 $string['selectassignment'] = 'Select assignment';
