@@ -15,8 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
- * @package    grade_report_rubrics
+ * Gradebook rubrics report
+ * @package    gradereport_rubrics
  * @copyright  2014 Learning Technology Services, www.lts.ie - Lead Developer: Karen Holland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -24,20 +24,20 @@
 require_once('../../../config.php');
 require_once($CFG->libdir .'/gradelib.php');
 require_once($CFG->dirroot.'/grade/lib.php');
-require_once($CFG->dirroot.'/grade/report/rubrics/lib.php');
+use gradereport_rubrics\report;
 require_once("select_form.php");
 
-$assignmentid = optional_param('assignmentid', 0, PARAM_INT);
+$activityid = optional_param('activityid', 0, PARAM_INT);
 $displaylevel = optional_param('displaylevel', 1, PARAM_INT);
 $displayremark = optional_param('displayremark', 1, PARAM_INT);
 $displaysummary = optional_param('displaysummary', 1, PARAM_INT);
 $displayidnumber = optional_param('displayidnumber', 1, PARAM_INT);
 $displayemail = optional_param('displayemail', 1, PARAM_INT);
 $format = optional_param('format', '', PARAM_ALPHA);
-$courseid = required_param('id', PARAM_INT);// Course id.
+$courseid = required_param('id', PARAM_INT); // Course id.
 
 if (!$course = $DB->get_record('course', array('id' => $courseid))) {
-    print_error('invalidcourseid');
+    throw new moodle_exception(get_string('invalidcourseid', 'gradereport_rubrics'));
 }
 
 // CSV format.
@@ -57,7 +57,7 @@ $context = context_course::instance($course->id);
 
 require_capability('gradereport/rubrics:view', $context);
 
-$assignmentname = '';
+$activityname = '';
 
 // Set up the form.
 $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
@@ -65,12 +65,14 @@ $mform = new report_rubrics_select_form(null, array('courseid' => $courseid));
 // Did we get anything from the form?
 if ($formdata = $mform->get_data()) {
     // Get the users rubrics.
-    $assignmentid = $formdata->assignmentid;
+    $activityid = $formdata->activityid;
 }
 
-if ($assignmentid!=0) {
-    $assignment = $DB->get_record_sql('SELECT name FROM {assign} WHERE id = ? limit 1', array($assignmentid));
-    $assignmentname = format_string($assignment->name, true, array('context' => $context));
+if ($activityid != 0) {
+    $cm = get_fast_modinfo($courseid)->cms[$activityid];
+    $activityname = format_string($cm->name, true, ['context' => $context]);
+    // Determine whether or not to display general feedback.
+    $displayfeedback = report::GRADABLES[$cm->modname]['showfeedback'] ?? false;
 }
 
 if (!$csv) {
@@ -86,8 +88,8 @@ if (!$csv) {
 
 $gpr = new grade_plugin_return(array('type' => 'report', 'plugin' => 'grader',
     'courseid' => $courseid)); // Return tracking object.
-$report = new grade_report_rubrics($courseid, $gpr, $context); // Initialise the grader report object.
-$report->assignmentid = $assignmentid;
+$report = new report($courseid, $gpr, $context); // Initialise the grader report object.
+$report->activityid = $activityid;
 $report->format = $format;
 $report->excel = $format == 'excelcsv';
 $report->csv = $format == 'csv' || $report->excel;
@@ -96,8 +98,10 @@ $report->displayremark = ($displayremark == 1);
 $report->displaysummary = ($displaysummary == 1);
 $report->displayidnumber = ($displayidnumber == 1);
 $report->displayemail = ($displayemail == 1);
-$report->assignmentname = $assignmentname;
+$report->activityname = $activityname;
+$report->displayfeedback = $displayfeedback ?? false;
 
-$report->show();
+$table = $report->show();
+echo $table;
 
 echo $OUTPUT->footer();

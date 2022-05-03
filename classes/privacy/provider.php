@@ -15,14 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Defines {@link \gradereport_rubrics\privacy\provider} class.
+ * Defines rubrics report privacy\provider class.
  *
  * @package    gradereport_rubrics
  * @category   privacy
  * @copyright  2018 LTS
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
- 
 namespace gradereport_rubrics\privacy;
 
 /**
@@ -31,12 +30,9 @@ namespace gradereport_rubrics\privacy;
  * @copyright  2018 Karen Holland <karen@lts.ie>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
- 
-class provider implements 
-    
+class provider implements
     // This plugin does not store any personal user data.
     \core_privacy\local\metadata\null_provider {
- 
     /**
      * Get the language string identifier with the component's language
      * file to explain why this plugin stores no data.

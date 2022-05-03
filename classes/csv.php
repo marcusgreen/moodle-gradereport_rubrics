@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of the gradereport rubrics plugin
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -13,25 +13,31 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+namespace gradereport_rubrics;
+use core_text;
 
 /**
- *  Describe the capabilities for the plugin
+ * Provides CSV functionality.
+ *
  * @package    gradereport_rubrics
- * @copyright  2014 Learning Technology Services, www.lts.ie - Lead Developer: Karen Holland
+ * @copyright  2021 onward Brickfield Education Labs Ltd, https://www.brickfield.ie
+ * @author     2021 Karen Holland <karen@brickfieldlabs.ie>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
-$capabilities = [
+class csv {
 
-    'gradereport/rubrics:view' => [
-        'riskbitmask' => '',
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => [
-            'student' => CAP_PREVENT,
-            'teacher' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        ]
-    ],
-];
+    /**
+     * Replace or add proper quotations for csv files
+     *
+     * @param mixed $value
+     * @param mixed $excel
+     * @return void
+     */
+    public function csv_quote($value, $excel) {
+        if ($excel) {
+            return core_text::convert('"'.str_replace('"', "'", $value).'"', 'UTF-8', 'UTF-16LE');
+        } else {
+            return '"'.str_replace('"', "'", $value).'"';
+        }
+    }
+}

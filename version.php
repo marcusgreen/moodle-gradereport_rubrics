@@ -15,11 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
- * @package    grade_report_rubrics
+ *  Version information for report rubrics
+ * @package    gradereport_rubrics
  * @copyright  2018 Learning Technology Services, www.lts.ie - Lead Developer: Karen Holland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 $plugin->version = 2021060200;
 $plugin->requires = 2018051700; // Moodle 3.5.
