@@ -17,11 +17,13 @@
 /**
  *  Version information for report rubrics
  * @package    gradereport_rubrics
- * @copyright  2018 Learning Technology Services, www.lts.ie - Lead Developer: Karen Holland
+ * @copyright  2021 Brickfield Education Labs <https://www.brickfield.ie/> - Lead Developer: Karen Holland
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2021060200;
-$plugin->requires = 2018051700; // Moodle 3.5.
+$plugin->version   = 2021060200;
+$plugin->requires  = 2018051700; // Moodle 3.5.
 $plugin->component = 'gradereport_rubrics';
+$plugin->release   = '1.39.06 (Build 2021060200)';
+$plugin->maturity  = MATURITY_STABLE;
