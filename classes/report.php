@@ -52,6 +52,8 @@ class report extends grade_report {
      */
     public $output;
 
+    public $assign;
+
     /**
      * Initalize a report object
      *
@@ -62,6 +64,12 @@ class report extends grade_report {
      */
     public function __construct($courseid, $gpr, $context, $page=null) {
         parent::__construct($courseid, $gpr, $context, $page);
+
+        if ($gpr->activityid) {
+            $cm = get_fast_modinfo($this->courseid)->cms[$gpr->activityid];
+            $this->assign = new \assign($context, $cm, $cm->get_course());
+        }
+
         $this->course_grade_item = grade_item::fetch_course_item($this->courseid);
     }
 
@@ -85,6 +93,32 @@ class report extends grade_report {
     }
 
     /**
+     * Obscure the identify of students when blind marking
+     * is enabled. These identities will match those shown
+     * in gthe gradebook.
+     *
+     * @param array $users
+     * @param assign $assign
+     * @return array
+     */
+    public function set_blindmarking(array $users, $assign): array {
+        if ($assign->is_blind_marking()) {
+            $cm = $assign->get_course_module();
+            foreach ($users as &$user) {
+                $anonymousid = get_string('participant', 'report_advancedgrading') .
+                ' ' . \assign::get_uniqueid_for_user_static($cm->instance, $user->id);
+                $user->username = $anonymousid;
+                $user->firstname = $anonymousid;
+                $user->lastname = $anonymousid;
+                $user->email = $anonymousid;
+                $user->idnumber = $anonymousid;
+            }
+        }
+        return $users;
+    }
+
+
+    /**
      * Generate and display the rubric report
      *
      * @return void
@@ -102,6 +136,8 @@ class report extends grade_report {
         $coursecontext = context_course::instance($this->courseid);
         $users = get_enrolled_users($coursecontext, $withcapability = 'mod/assign:submit', $groupid = 0,
             $userfields = 'u.*', $orderby = 'u.lastname');
+
+        $users = $this->set_blindmarking($users, $this->assign);
         $data = [];
 
         // Process relevant grading area id from activityid and courseid.

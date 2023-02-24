@@ -54,3 +54,4 @@ $string['student'] = 'Student';
 $string['studentemail'] = 'Email';
 $string['studentid'] = 'ID Number';
 $string['summary'] = 'Summary';
+$string['participant'] = 'Participant';

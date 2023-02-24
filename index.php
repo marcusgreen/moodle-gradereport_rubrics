@@ -26,6 +26,8 @@ require_once($CFG->libdir .'/gradelib.php');
 require_once($CFG->dirroot.'/grade/lib.php');
 use gradereport_rubrics\report;
 require_once("select_form.php");
+require_once($CFG->dirroot . '/mod/assign/locallib.php');
+
 
 $activityid = optional_param('activityid', 0, PARAM_INT);
 $displaylevel = optional_param('displaylevel', 1, PARAM_INT);
@@ -70,6 +72,10 @@ if ($formdata = $mform->get_data()) {
 
 if ($activityid != 0) {
     $cm = get_fast_modinfo($courseid)->cms[$activityid];
+
+    $context = context_module::instance($cm->id);
+    $assign = new \assign($context, $cm, $cm->get_course());
+
     $activityname = format_string($cm->name, true, ['context' => $context]);
     // Determine whether or not to display general feedback.
     $displayfeedback = report::GRADABLES[$cm->modname]['showfeedback'] ?? false;
@@ -88,6 +94,7 @@ if (!$csv) {
 
 $gpr = new grade_plugin_return(array('type' => 'report', 'plugin' => 'grader',
     'courseid' => $courseid)); // Return tracking object.
+$gpr->activityid = $activityid;
 $report = new report($courseid, $gpr, $context); // Initialise the grader report object.
 $report->activityid = $activityid;
 $report->format = $format;
